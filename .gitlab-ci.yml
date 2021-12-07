@@ -27,6 +27,11 @@ build-job: # This job runs in the build stage, which runs first.
     - echo "build complete."
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
+  artifacts:
+    paths:
+      - public/
+    untracked: false
+    expire_in: 30 days
 
 deploy-job:
   stage: deploy
