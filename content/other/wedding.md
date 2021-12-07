@@ -216,7 +216,7 @@ Welcome !!!!!
 
 > 卢书洋弟弟
 
-<video controls width="auto" height="500px" poster="/images/7651633266750_.pic_-1-e1633267042299.jpg">
+<video controls width="300px" height="auto" poster="/images/7651633266750_.pic_-1-e1633267042299.jpg">
     <source src="/videos/lushuyuan.mp4"/>
 </video>
 
@@ -224,7 +224,7 @@ Welcome !!!!!
 
 > 贾凯雯妹妹
 
-<video controls width="auto" height="500px" poster="/images/EC25FA22-E25B-4DC1-A93B-3C3A3D5B67F8-3200-0000040B85802EFF_tmp-1.jpg">
+<video controls width="300px" height="auto" poster="/images/EC25FA22-E25B-4DC1-A93B-3C3A3D5B67F8-3200-0000040B85802EFF_tmp-1.jpg">
     <source src="/videos/YaQi.mp4#t=0.01"/>
 </video>
 
