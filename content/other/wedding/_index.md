@@ -9,12 +9,12 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2021.10.16 stand by us
 
-<audio controls src="/music/StandByMe.mp3">
+<audio controls src="./StandByMe.mp3">
 </audio>
 
 # 关于我们(about us)
 
-![aboutUs](/images/WechatIMG178932.png)
+![aboutUs](./WechatIMG178932.png)
 
 ## 贾凯雯 🎹
 
@@ -48,7 +48,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2011 09 16
 
-![kfc](/images/WechatIMG178932-1.png)
+![kfc](./WechatIMG178932-1.png)
 
 大学军训期间，卢书洋和他的舍友们吃到了入学后的第一顿肯德基，听说是同班的一个女生请客的。那时班上的男、女生还没怎么见过面。
 
@@ -66,7 +66,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2011 - 2015
 
-![NJAU](/images/IMG_7085-scaled.jpg)
+![NJAU](./IMG_7085-scaled.jpg)
 
 如果一定要用几个字来概括他们大学时代的故事，那我想一定是NJAU了。这四个字母包含的太多，他们大学时代所有的故事，都在此发生。
 
@@ -78,7 +78,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2015 06 21
 
-![KFC_xiamafang](/images/xiamafangKFC.png)
+![KFC_xiamafang](./xiamafangKFC.png)
 
 整个大学期间卢书洋和贾凯雯只是同学、同事，但是男生的内心其实期望更进一步，终于在毕业典礼前一天，鼓足了勇气把女生约到了肯德基（为什么又是肯德基！），在这里开展了强烈的爱情攻势。
 
@@ -94,7 +94,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2015 06
 
-![NanJingEastRoad](/images/DSC_0590-1.jpg)
+![NanJingEastRoad](./DSC_0590-1.jpg)
 
 6月底的上海的夜晚似乎还没有夏天的燥热，晚风吹过两人的面庞，两人在毕业前就计划一起去上海玩一趟，未曾想最后是作为情侣一起去旅行了。
 
@@ -111,7 +111,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 > 2017 01 01
 
 <video controls width="auto" height="550px" poster="/images/麦当劳poster.jpg">
-    <source src="/videos/麦当劳.mp4#t=0.01"/>
+    <source src="./麦当劳.mp4#t=0.01"/>
 </video>
 
 2017元旦，他们选择在北京跨年。本来想在国贸倒数的，但是为了预防公众事件，国贸的商场临时接到通知全部关闭。
@@ -131,7 +131,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 今年的跨年比较顺利，一起来看看他们说了什么：
 
 <video controls height="550px">
-    <source src="/videos/天津.mp4#t=0.1"/>
+    <source src="./天津.mp4#t=0.1"/>
 </video>
 
 ---
@@ -140,7 +140,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2019 01 01
 
-![artMuseum](/images/ORG_DSC05850.jpg)
+![artMuseum](./ORG_DSC05850.jpg)
 
 不平凡的2018年！他们在北京和上海活动，踪迹遍布于北京的火车博物馆，国家大剧院，朝阳大悦城，侨福芳草地；上海的玻璃博物馆，360蹦床（年轻的卢书洋为此付出了惨痛的代价），双年展等地。
 
@@ -154,7 +154,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2020 01 01
 
-![Cat](/images/IMG_5356.jpeg)
+![Cat](./IMG_5356.jpeg)
 
 2019是稀松平常的一年，他们仿佛已经习惯了在京沪高铁上，穿梭于城市之间。
 
@@ -166,7 +166,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2020 08 29
 
-![hotpot](/images/IMG_8948.jpg)
+![hotpot](./IMG_8948.jpg)
 
 后来的情况大家也知道了，2020一点都不平常，疫情的肆虐，终于让俩人相隔千里，8个月没有见面。彼时贾凯雯还面临文章、论文、答辩的压力，让这注定是辛苦的一年。
 
@@ -180,7 +180,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2021 05 15
 
-![wonderfulDay](/images/shdr-homepage-billboard-5th-birthday-20210801-scaled.jpeg)
+![wonderfulDay](./shdr-homepage-billboard-5th-birthday-20210801-scaled.jpeg)
 
 真是童心未泯！这两人好像没有长大，居然跑去迪士尼玩！迪士尼的口号是祝你拥有神奇的一天，也不知道有什么神奇的魔法能够抵消排队带来的痛苦。
 
@@ -196,7 +196,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2021 06 22
 
-![yeti](/images/IMG_6850-scaled.jpeg)
+![yeti](./IMG_6850-scaled.jpeg)
 
 时间来到了最近，这俩位终于迎来了他们的高光时刻，他们决定去领证啦！
 
@@ -216,16 +216,16 @@ Welcome !!!!!
 
 > 卢书洋弟弟
 
-<video controls width="300px" height="auto" poster="/images/7651633266750_.pic_-1-e1633267042299.jpg">
-    <source src="/videos/lushuyuan.mp4"/>
+<video controls width="300px" height="auto" poster="./7651633266750_.pic_-1-e1633267042299.jpg">
+    <source src="./lushuyuan.mp4"/>
 </video>
 
 ## Liang Yaqi​
 
 > 贾凯雯妹妹
 
-<video controls width="300px" height="auto" poster="/images/EC25FA22-E25B-4DC1-A93B-3C3A3D5B67F8-3200-0000040B85802EFF_tmp-1.jpg">
-    <source src="/videos/YaQi.mp4#t=0.01"/>
+<video controls width="300px" height="auto" poster="./EC25FA22-E25B-4DC1-A93B-3C3A3D5B67F8-3200-0000040B85802EFF_tmp-1.jpg">
+    <source src="./YaQi.mp4#t=0.01"/>
 </video>
 
 
