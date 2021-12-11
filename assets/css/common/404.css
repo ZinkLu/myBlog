@@ -1,0 +1,23 @@
+.not-found {
+    position: relative;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    height: 50%;
+    font-size: 40px;
+    font-weight: 700;
+}
+
+.hitokoto {
+    font-size: 30px;
+    font-weight: 200;
+}
+
+.hitokoto_from {
+    text-align: right;
+    font-size: 20px;
+    font-weight: 100;
+    font-style: italic;
+}

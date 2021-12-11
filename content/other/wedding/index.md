@@ -1,8 +1,9 @@
 ---
 title: "邀请函"
-date: 2021-10-04T02:23:45+08:00
+date: "2021-10-04T02:23:45+08:00"
 draft: false
 description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，只保留了朴实的感动。
+summary: 狐狸和炉子的故事
 ---
 
 # 卢书洋 & 贾凯雯
@@ -110,7 +111,7 @@ description: 我们的官网婚礼邀请函，它失去了华丽的Js动画，�
 
 > 2017 01 01
 
-<video controls width="auto" height="550px" poster="/images/麦当劳poster.jpg">
+<video controls width="auto" height="550px">
     <source src="./麦当劳.mp4#t=0.01"/>
 </video>
 
@@ -231,7 +232,7 @@ Welcome !!!!!
 
 # 送出祝福吧！(send your wish)
 
-[Here!](#)
+请在下面评论区留下祝福吧！
 
 # Thanks for watching !
 

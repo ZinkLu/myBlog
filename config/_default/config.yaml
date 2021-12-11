@@ -1,0 +1,14 @@
+title: "LH-Love"
+paginate: 10
+# theme: PaperMod
+copyright: 苏ICP备2021040186号-1
+defaultContentLanguage: zh
+
+enableRobotsTXT: false
+buildDrafts: true
+buildFuture: false
+buildExpired: false
+
+minify:
+  disableXML: true
+  minifyOutput: true

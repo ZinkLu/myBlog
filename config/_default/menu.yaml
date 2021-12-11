@@ -1,0 +1,24 @@
+main:
+  - identifier: technical
+    name: 技术
+    url: /technical/
+    weight: 10
+
+  - identifier: bioInfoTechnical
+    name: 生信
+    url: /bio_info_technical/
+    weight: 11
+
+  - identifier: reading
+    name: 阅读
+    url: /reading/
+    weight: 20
+
+  - identifier: 其他
+    name: 其他
+    url: /other/
+    weight: 30
+
+  - identifier: weihong
+    name: 友情链接
+    url: https://lh-love.top

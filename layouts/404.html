@@ -1,0 +1,24 @@
+{{- define "main" }}
+<script defer>
+    var xhr = new XMLHttpRequest();
+    xhr.open('get', 'https://v1.hitokoto.cn/?c=d&c=h&c=k&c=i');
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.responseText)
+            var data = JSON.parse(xhr.responseText);
+            var hitokoto = document.getElementById('hitokoto');
+            var hitokoto_from = document.getElementById('hitokoto_from');
+            hitokoto.innerText = data.hitokoto;
+            hitokoto_from.innerText = (data.from_who && data.from_who + "·" || "") + data.from;
+        }
+    }
+    xhr.send();
+</script>
+<div class="not-found">
+    404
+</div>
+<div class="not-found-text">
+    <div class="hitokoto" id="hitokoto"></div>
+    <div class="hitokoto_from">-- <span id="hitokoto_from"></span> (由<a href="https://hitokoto.cn/" style="font-weight: 400;">一言</a>提供) </div>
+</div>
+{{- end }}{{/* end main */ -}}
