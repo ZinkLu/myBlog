@@ -1,8 +1,7 @@
 baseURL: "https://lh-love.top/"
 title: "LH-Love"
 paginate: 10
-theme: PaperMod
-# copyright: 苏ICP备2021040186号-1
+copyright: 苏ICP备2021040186号-1
 defaultContentLanguage: zh
 
 enableRobotsTXT: true
@@ -18,7 +17,7 @@ minify:
   minifyOutput: true
 
 params:
-  issoHost: "http://localhost:1314"
+  issoHost: "https://lh-love.top/isso"
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
   title: LH-Home
   description: "清净的小屋"
