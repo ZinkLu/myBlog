@@ -10,7 +10,7 @@ buildFuture: false
 buildExpired: false
 
 
-# googleAnalytics: UA-123-45
+googleAnalytics: G-X79DFY2VEL
 
 minify:
   disableXML: true
