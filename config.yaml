@@ -9,7 +9,6 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 
-
 googleAnalytics: G-X79DFY2VEL
 
 minify:
@@ -28,7 +27,7 @@ params:
   DateFormat: "2006-01-02"
   defaultTheme: light # dark, light
   disableThemeToggle: false
-  ShowReadingTime: true
+  ShowReadingTime: false
   ShowShareButtons: false
   ShowPostNavLinks: true
   ShowBreadCrumbs: true
@@ -112,27 +111,23 @@ menu:
   main:
     - identifier: technical
       name: 技术
-      url: /technical/
+      url: /posts/technical/
       weight: 10
 
     - identifier: bioInfoTechnical
       name: 生信
-      url: /bio_info_technical/
+      url: /posts/bio_info_technical/
       weight: 11
 
     - identifier: reading
       name: 阅读
-      url: /reading/
+      url: /posts/reading/
       weight: 20
 
     - identifier: 其他
       name: 其他
-      url: /other/
+      url: /posts/other/
       weight: 30
-
-    - identifier: weihong
-      name: 友情链接
-      url: https://lh-love.top
 
 # Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
 
