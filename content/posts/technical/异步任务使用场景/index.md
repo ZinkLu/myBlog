@@ -1,9 +1,9 @@
 ---
-title: "异步任务使用场景和注意事项"
+title: "Celery使用心得"
 date: "2022-04-25T11:24:00+08:00"
 draft: false
 description: 能不异步就不异步
-summary: 
+summary: 异步任务使用场景和注意事项
 ---
 
 # 1. 前言
