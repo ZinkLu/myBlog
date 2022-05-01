@@ -450,10 +450,15 @@ def beat_task():
 | | commit;                                                   |                                |
 
 > 这种情况是指望不上数据库的隔离级别去发挥作用的
+> 
 > 拓展阅读：
+> 
 > 	[Innodb中的事务隔离级别和锁的关系](https://tech.meituan.com/2014/08/20/innodb-lock.html)
+> 
 > 	[你应该了解的MySQL锁分类](https://segmentfault.com/a/1190000023869573)
+> 
 > 	[Innodb的多版本并发控制(MVCC)](https://segmentfault.com/a/1190000037557620)	
+> 
 > 	[【原创】惊！史上最全的select加锁分析(Mysql)](https://www.cnblogs.com/rjzheng/p/9950951.html)
 
 ## 6.3 Celery 服务的部署
