@@ -86,7 +86,7 @@ def create_extract_tasks(task_name, files):
 
 第二个问题还是数据不一致的情况。
 
-在task中，多事务同时去查询并更新，如果并发过高，可能会发生**[奇怪的问题]( ##6.1 数据库并发)**。
+在task中，多事务同时去查询并更新，如果并发过高，可能会发生 **[奇怪的问题](#61-数据库并发)** 。
 
 ### 2.2.1 子任务
 
@@ -211,7 +211,7 @@ def update_task_status_based_on_files(task_id):
     update_task(task_id, status=status)
 ```
 
-[数据库状态](##6.2 数据库并发(使用排他锁))
+[数据库状态](#62-数据库并发使用排他锁)
 
 > 参考：
 >
@@ -460,8 +460,4 @@ def beat_task():
 > 	[Innodb的多版本并发控制(MVCC)](https://segmentfault.com/a/1190000037557620)	
 > 
 > 	[【原创】惊！史上最全的select加锁分析(Mysql)](https://www.cnblogs.com/rjzheng/p/9950951.html)
-
-## 6.3 Celery 服务的部署
-
-详见 [Flask文档](http://flask-docs.dics.datagrand.cn/docs/%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1/%E5%90%AF%E5%8A%A8%E6%96%B9%E5%BC%8F.html)
 
