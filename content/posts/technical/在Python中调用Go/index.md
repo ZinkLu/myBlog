@@ -1164,7 +1164,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
 # 7. Slice
 
-终于到了 Slice，其实 Slice 和 GoString 一定，他都是个结构体:
+终于到了 Slice，其实 Slice 和 GoString 一样，他都是个结构体:
 
 ```c
 typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会展示出 Slice 中真正的数据结构，因此还是需要结合
