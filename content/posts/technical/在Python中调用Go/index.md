@@ -1,9 +1,9 @@
 ---
 title: "在Python中调用Go"
 date: "2022-05-11T10:45:39+08:00"
-draft: True
-description: 🐍📞🐭
-summary: 在 Python 里面使用 GoSlice GoString 等
+draft: false
+description: 🐍📞🐭 Python call Go
+summary: 在 Python 里面使用 GoSlice GoString Strcut 等，如果时间很多欢迎进来看看
 isMath: false
 ---
 
@@ -721,7 +721,7 @@ print(p.name, p.age)
 # xiaohong, 12
 ```
 
-## 5.3 注
+## 5.3 问题
 
 我一开始是这么定义 Person 结构体的
 
@@ -937,9 +937,129 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
     ```
 
 ## 6.2 数组指针
+
+对于 Cgo 来说，它几乎不支持对 Go 原生数组的操作。
+
+| 类型             | 参数/返回 | 是否允许         |
+| ---------------- | --------- | ---------------- |
+| 数组             | 参数      | 不允许           |
+| 数组             | 返回      | 不允许           |
+| 数组指针         | 参数      | 不允许           |
+| 数组指针（地址） | 返回      | 允许（但有问题） |
+
+因此我们还是要借助 C 的 Array 来完成这种操作。
+
+1. 编写 Go 代码
+
+    ```go
+    //export returnIntArray
+    func returnIntArray(first *int, length int) uintptr {
+        // #1
+        const buffer = 1024
+        if length > buffer {
+            fmt.Println("array must not great than %s \n", buffer)
+        }
+        goArray := (*[buffer]int)(unsafe.Pointer(first)) // #2
+        var goSlice []int = goArray[:length] // #3
+        fmt.Println(goSlice)
+
+        last := length - 1
+        goSlice[0], goSlice[last] = goSlice[last], goSlice[0] // #4
+
+        const arrayLength = 10
+        ret := C.malloc(C.size_t(arrayLength) * C.size_t(unsafe.Sizeof(C.longlong(0)))) // #5
+        pRet := (*[arrayLength]C.longlong)(ret) // #6
+        for i := 0; i < 10; i++ {
+            pRet[i] = C.longlong(i)
+        }
+        return uintptr(ret) // #7
+    }
+    ```
+
+    先解释一下这个代码。
+    
+    1. 由于 Cgo 不允许直接入参数组，所以我们传入一个 int 指针，代表数组的第一个元素，length 代表了数组的长度；
+
+    2. Go 里面和 C 一样，可以直接将 Pointer cast 成另外的一种类型，这里，我们将指针转换成了 `[1024]int` 的数组。需要注意的是，`[length]int` 是不行的，因为 length 是变量，Go 不允许申请一个不定长的数组；
+    
+    3. 因此我们使用一个 1024 长度的 buffer 先去构建一个数组，然后转换成切片；
+    
+        需要注意的是，我们无法直接使用 Pointer 转换一个 Slice 的，因为 Go 不知道 Slice 的 len 和 cap，如果让他去转，他会直接转成一个长度为 0 的 Slice；
+    
+    4. 我们直接操作数组，交换两个值，这样我们能比较直观看到结果；
+    
+    5. 使用 C.molloc 申请一片内存空间，大小为，`数组的长度 * 数组元素大小` (这里是 C.longlong)，返回的是一个指针对象，这个内存是不会被 Go GC 的；
+    
+    6. 然后我们需要将指针转换为 Go 中的 array，以便操作，我们塞入几个数字到数组中；
+    
+    7. 返回这个地址；
+
+我们来编写调用方
+
+2. Cython
+
+    Cython 创建数组可以使用 cpython 的 array，见[文档](https://cython.readthedocs.io/en/latest/src/tutorial/array.html)
+
+    同时，在 Cython 里面操作指针和索引操作一样。
+
+    ```python
+    # pxd
+    cdef extern from "library.h":
+        ctypedef int GoInt64
+        ctypedef GoInt64 GoInt 
+        ctypedef size_t GoUintptr
+        GoUintptr returnIntArray(GoInt* first, GoInt length)
+    ```
+
+    ```python
+    # pyx
+    from cpython cimport array
+    from external cimport GoInt, GoUintptr, returnIntArray
+
+    import array
+    from typing import List
+
+    def go_return_int_array(youArray: List[int]):
+        cdef GoInt[:] carray = array.array("q", youArray)
+        cdef GoInt *carray_p = &carray[0]
+        cdef GoUintptr res_addr = returnIntArray(carray_p, len(youArray))
+        cdef GoInt *res = <GoInt*> res_addr # 返回的结果，先转化成一个指针
+        print(carray.base) # 这里是 memoryview 对象，我们可以直接获取他内部的对象，或者直接操作 memoryview，也很方便
+        print([res[i] for i in range(10)]) # 打印返回的结果，我们操作指针移动 10 次，去取值
+        return carray
+    ```
+
+3. Python
+
+    在 Python 里面操作指针和索引操作一样。
+
+    ```python
+    import array
+    from ctypes import (POINTER, cdll, c_int64)
+
+    __library = cdll.LoadLibrary('library.so')
+
+    return_int_array = __library.returnIntArray
+
+    length = 10
+    args_type = POINTER(c_int64) * length # Python 中为了创建一个 C 的数组，需要先创建一个 POINTER 的类型，然后再 乘一个长度，即可获得 C 中的数组了
+    res_type = POINTER(c_int64) # 返回值是一个指针
+
+    return_int_array.argtypes = [args_type, c_int64]
+    return_int_array.restype = res_type
+
+    arr = array.array("q", range(length))
+    res = return_int_array(args_type.from_buffer(arr), length) # 使用 from_buffer 速度比较快，还有一种方式是 args_type([1,2,3,4])，这种速度会比较慢，Python 的 array 是更为底层的数据结构
+    # res = return_int_array(args_type(list(range(length))), length) # 慢
+    print(arr) # 打印了 array 会发现已经被改动
+    print([res[r] for r in range(10)])  # 以索引的方式去操作指针
+    ```
+
+其实在 Go 中返回数组时时，更多的是在编写 C 的代码了，感觉真的挺复杂的。不过也不需要担心，后面的 Slice 会 *稍微* 方便一点。
+
 ## 6.3 问题
 
-1. Cython 
+1. Cython 的问题 
 
     我这里发现一个问题，还是以上面的代码为例
     
@@ -959,7 +1079,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
     在函数中打印后发现实际上 p 中的 name 和 age 都是是零值，不清楚是怎么一回事。
 
-2. 为什么不直接返回 uintptr
+2. 为什么 Struct 不直接返回 uintptr
 
     可能会有人好奇，为什么不直接返回 uintptr ，理论上来说不一样吗？
 
@@ -1025,13 +1145,270 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
     有可能临时变量和触发 GC 有关？当然我完全是瞎猜乱猜，后面有机会可以提一个 issue 去请教一下。
 
+3. 为什么不直接返回 GoArray 的 uintptr
 
-# Slice
+    在 [6.2 数组指针](#62-数组指针) 这一章节，使用 `C.malloc` 申请了一波内存空间，然后在对内存进行操作。
+
+    不直接返回 GoArray 的原因和第二点一样，因为 GoArray 是 Go 的内置类型，由 Go 管理其指针，所以可能也触发了 Go 的 GC。
+
+    总之，直接返回 GoArray 的地址，然后在 C 或者 Python 中操作指针是会产生 segment fault 的，必须用 C 的 malloc API 去申请一片不会被回收的内存。
+
+    如果有人想试试，可以参考下面的代码
+
+    ```go
+    //export returnWrongIntArray
+    func returnWrongIntArray() uintptr {
+        a := [10]C.longlong{}
+        for idx, v := range a {
+            a[idx] = C.longlong(v)
+        }
+        return uintptr(unsafe.Pointer(&a))
+    }
+    ```
+
+    可以保证的是，在操作指针的时候一定会出现意想不到的值，并且还有可能直接 segment fault。
+
+# 7. Slice
+
+终于到了 Slice，其实 Slice 和 GoString 一定，他都是个结构体:
+
+```c
+typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会展示出 Slice 中真正的数据结构，因此还是需要结合
+```
+
+因此 Slice 作为参数的话，只要在 Python 中定义结构体就能完成，只不过在 Go 中 return 一个 Slice 可能有点不太友好，我们还是要想办法给他转换成地址再返回。
+
+| 类型     | 参数/返回 | 是否允许 |
+| -------- | --------- | -------- |
+| 切片     | 参数      | 允许     |
+| 切片     | 返回      | 不允许   |
+| 切片指针 | 参数      | 允许     |
+| 切片指针 | 返回      | 允许     |
+
+除了无法不能直接返回一个 GoSlice 的对象外，Cgo 对其他情况的支持还算比较友好，不过 Slice 在 Go 中本来就是引用类型，*Slice 和 Slice 都是一样的，因为它直接操作的 Slice 中的 data 指针（其实不完全是）。
+
+1. 定义函数
+   
+   ```go
+    //export returnIntSlice
+    func returnIntSlice(slice []int, slicePoint *[]int) uintptr {
+        for idx, _ := range slice {
+            slice[idx] = idx
+        } // # 1
+
+        for idx, _ := range *slicePoint {
+            (*slicePoint)[idx] = idx
+        } // # 2
+
+        res := make([]int, 10, 10) // # 3
+        for idx, _ := range res {
+            res[idx] = idx
+        }
+
+        sh := (*reflect.SliceHeader)(unsafe.Pointer(&res)) // # 4
+        return sh.Data // # 5
+    }
+   ```
+
+   1. 对 `[]int` 类型的参数进行修改
+
+   2. 对 `*[]int` 类型的参数进行修改
+
+   3. 创建一个 `[]int`，它的 cap 和 len 都是 10
+   
+   4. 我们先拿到 `[]int` 的地址，再通过反射拿到切片对应的 Struct
+
+   5. 返回 Slice 中的 Data（即地址），由于还是返回的是 Go 管理的地址，因此这样做是有问题的（参考 array 的返回方式，我实在是懒得写了）；
+
+2. Cython
+
+    Cython 的操作几乎和 array 一样，只不过是要多构建一个 GoSlice 的结构体罢了
+
+    ```python
+    # pxd
+    cdef extern from "library.h":
+        ctypedef int GoInt64
+        ctypedef GoInt64 GoInt
+        ctypedef size_t GoUintptr
+        cdef struct _GoSlice:
+            void *data
+            GoInt len
+            GoInt cap
+        ctypedef _GoSlice GoSlice
+        GoUintptr returnIntSlice(GoSlice slice, GoSlice* slicePoint)
+    ```
+
+    ```python
+    # pyx
+    def go_return_int_slice(youSlice: List[int]):
+        cdef GoInt[:] carray = array.array("q", youSlice)
+        cdef GoInt *carray_p = &carray[0]
+        cdef GoSlice s1
+        s1.data = carray_p
+        s1.cap = len(youSlice)
+        s1.len = len(youSlice)
+
+        cdef GoInt[:] carray2 = array.array("q", youSlice)
+        cdef GoInt *carray_p2 = &carray2[0]
+        cdef GoSlice s2
+        s2.data = carray_p2
+        s2.cap = len(youSlice)
+        s2.len = len(youSlice)
+
+        cdef GoUintptr res_addr = returnIntSlice(s1, &s2)
+
+        cdef GoInt *res = <GoInt*> res_addr
+
+        print(res_addr)
+        print(carray.base) # carray 已经被修改
+        print(carray2.base) # carray2 也被修改了
+        print([res[i] for i in range(10)])
+    ```
+
+3. Python
+
+    由于 `c_void_p` 是一个不确定类型的指针，因此我们再调用的时候应该避免直接这么用，可以用一个工厂函数来创建不同类的的 GoSlice。
+
+    其实不写也无所谓，谁会看到这里呢？
+
+    ```python
+    import array
+    from typing import Type
+    from ctypes import (POINTER, cdll, c_longlong, Structure, _SimpleCData, pointer)
+
+    GoSliceTypes = dict()
+
+    
+    def GoSlice(cType: Type[_SimpleCData]) -> Type[Structure]:
+        """GoSlice 工厂函数，返回的是不同类型的 GoSlice"""
+        t = GoSliceTypes.get(cType)
+        if t:
+            return t
+        t = type(
+            "GoSlice",
+            (Structure, ),
+            dict(_fields_=[
+                ("data", POINTER(cType)),
+                ("len", c_longlong),
+                ("cap", c_longlong),
+            ]),
+        )
+        GoSliceTypes[cType] = t
+        return t
+
+
+    __library = cdll.LoadLibrary('library.so')
+
+    GoIntSlice = GoSlice(c_longlong) # 创建 []int 类型的 Slice
+
+    return_int_slice = __library.returnIntSlice
+    return_int_slice.argtypes = [GoIntSlice, POINTER(GoIntSlice)]
+    return_int_slice.restype = POINTER(c_longlong)
+
+    arr1 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1))) # 创建参数，c_types 的数组能够传给一个指针变量，指向这个数组的第一个元素
+    slice_1 = GoIntSlice(
+        data=arr1,
+        len=10,
+        cap=10,
+    )
+
+    arr2 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1)))
+
+    # pointer 类型
+    slice_pointer = pointer(GoIntSlice(
+        data=arr2,
+        len=10,
+        cap=10,
+    ), )
+
+    res = return_int_slice(slice_1, slice_pointer)
+    print(list(arr1))
+    print(list(arr2)) # 打印两个array，发现都被 Go 修改了去
+
+    print([res[i] for i in range(10)]) # 虽然我这边返回 0 - 9，不过实际上打印出来的最后一位是 1374389923320 
+    ```
+
+## 7.1 Slice 的扩容
+
+我上面讲传 Slice 对象和 Slice 的指针是一样的，其实是不准确的，如果 Go 的 Slice 发生了扩容，那情况又不一样了，我们拿 ctypes 来举个例子
+
+先编写一定会触发扩容的代码
+
+```go
+//export expandSlice
+func expandSlice(slice []int, slicePoint *[]int) {
+	res := make([]int, 10, 10) // # 3
+	for idx, _ := range res {
+		res[idx] = idx
+	}
+	slice = append(slice, res...)
+	*slicePoint = append(*slicePoint, res...)
+}
+```
+
+```python
+__library = cdll.LoadLibrary('library.so')
+
+GoIntSlice = GoSlice(c_longlong)
+
+expand_slice = __library.expandSlice
+expand_slice.argtypes = [GoIntSlice, POINTER(GoIntSlice)]
+
+arr1 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1)))
+slice_1 = GoIntSlice(
+    data=arr1,
+    len=10,
+    cap=10,
+)
+
+arr2 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1)))
+slice_pointer = pointer(GoIntSlice(
+    data=arr2,
+    len=10,
+    cap=10,
+), )
+
+expand_slice(slice_1, slice_pointer)
+print(slice_1.data, slice_1.len, slice_1.cap) # 1
+print(slice_pointer.contents.data, slice_pointer.contents.len, slice_pointer.contents.cap) # 2
+print([slice_pointer.contents.data[i] for i in range(slice_pointer.contents.len)]) # 3
+```
+
+1. Slice 1 的数据完全没变, cap 和 len 都是 10
+
+2. slice_pointer 里面的 cap 和 len 都翻倍了
+
+3. 使用 len 重新构建新的数组
+
+所以，还要什么自行车，别吧 Slice 和 array 当做返回参数了，多麻烦，直接传入一个 Slice 的指针，让 Go 自己去扩容吧。
+
+> 这种方法理论上是没问题的，因为参数 `slicePoint *[]int` 这个指针是 C 传过来的，Go 并不会进行 GC，让然也包括 Slice 里面的其他数据，Go 都不会去 GC
+>
+> 这纯粹是我的猜测，没有经过校验
+
+> 需要特别注意的是，cap 这个值千万不要乱写，就和 len 保持一直，和实际的列表长度一样。
+>
+> 在 Go 中，cap 是表示 Slice 的可用空间的，len 表示当前的 Slice 长度，如果你 cap 写的比 len 大，那 Go 就会认为这个 Slice 不需要扩容，可能会把其他内存里面的变量给改了，segment fault 警告。
+>
+> 不过这也是我的猜想，也没有经过验证
+
+# 8. chan
+
+TODO，虽然是 TODO 但是我感觉最好还是不要在其他地方用 Go 的 `chan` ，以后可能也不会补充这块的内容。
+
+# 9. interface
+
+TODO，虽然是 TODO 但是我感觉最好还是不要在其他地方用 Go 的 `interface{}` ，以后可能也不会补充这块的内容。
 
 # 多返回值
 
+TODO
 
-# 内存安全
+# ☢️☢️内存安全☢️☢️
+
+这点实在太重要了，如果你还没看过这一章节，那我建议你还是不要在长期运行的服务中去调用 Go 的函数了（或者 C 的函数），一定会造成内存泄露的。
+
+TODO
 
 # 总结
 
@@ -1041,9 +1418,9 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
 Cgo 之于 Go，就如 Cython 之于 Python。
 
-如果没什么必要，我觉得真的直接用 Cython 或者 C 去编写就行，用 Go 真的就是，没必要。
+如果没什么必要，我觉得真的直接用 Cython 或者 C 去编写就行，用 Go 真的就是，没必要，对于实在想用 Go 的人，我建议还是用微服务（RPC或者HTTP）的形式去调用吧，真心话！
 
-其实我在工作的时候没这么多复杂的场景，也就是字符串来回，但我还是去探索了 Python 和 Go 不同的组合技，后面发现这里面其实还是水挺深的，一脚蹚下去差点给我淹死。不过我也确实学了很多 Cgo 的知识、Cython的知识和 C 的知识。
+其实我在工作的时候没这么多复杂的场景，也就是字符串来回，但我还是去探索了 Python 和 Go 不同的组合技，后面发现这里面其实还是水挺深的，一脚蹚下去差点给我淹死。不过我也确实学了很多 Cgo 的知识、Cython的知识和 C 的知识，也对指针有了新的认识。
 
 所以我也是现学现卖，文中的不足还请各位指正。
 
@@ -1052,6 +1429,8 @@ Cgo 之于 Go，就如 Cython 之于 Python。
 # 参考
 
 - [https://github.com/fluhus/snopher](https://fluhus.github.io/snopher/)
+
+- https://stackoverflow.com/questions/65572429/how-to-return-go-array-slice-ist-to-a-c-function
 
 - ...(此处省略一万个 stackoverflow )
 
