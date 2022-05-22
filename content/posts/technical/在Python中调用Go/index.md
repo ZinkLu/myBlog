@@ -44,7 +44,6 @@ Python，解释性语言，语法简单，更加贴近英语的书写习惯，�
 func add(a int, b int) int {
     return a + b
 }
-
 ```
 
 需要在 Python 中调用这个函数，第一步：
@@ -169,7 +168,7 @@ func add(a int, b int) int {
 
     ```
     python setup.py build_ext -i
-    ``` 
+    ```
 
     > 如果此时 提示 gcc-5 的命令没有的话，需要先安装 gcc-5 的依赖，具体方法请自行百度。
 
@@ -219,7 +218,7 @@ func add(a int, b int) int {
 还有一种是将 Go 编译成 `so/dll` 的动态库，可喜可贺的是，在这种方式下，Python 内置的 `ctypes` 可以去直接调用。
 
 1. 编译动态库
-    
+   
     ```bash
     go build --buildmode=c-shared -o library.so main.go
     ```
@@ -246,19 +245,19 @@ func add(a int, b int) int {
 
     ```python
     import ctypes
-
+    
     lib = ctypes.cdll.LoadLibrary("library.so")
-
+    
     GoInt64 = ctypes.c_int64
     GoInt = GoInt64
-
+    
     add = lib.add
-
+    
     add.argtypes = [GoInt64, GoInt64]
     add.restype = GoInt64
-
+    
     res = add(GoInt(1), GoInt(2))
-
+    
     print(res)
     ```
 
@@ -390,13 +389,13 @@ go build -buildmode=c-archive -o library.a main.go
     ```python
     # external.pyx
     from external cimport hello, GoString
-
+    
     cdef (GoString) getGoString(char* string):
         cdef GoString goStr # 创建一个 GoString 对象
         goStr.p = string # 设置p值
         goStr.n = len(string) # 设置n值
         return goStr
-
+    
     def go_hello(a: str):
         return hello(getGoString(a.encode())) # bytes 就等于 char*
     ```
@@ -415,13 +414,11 @@ go build -buildmode=c-archive -o library.a main.go
     # main.py
     from ctypes import Structure, c_char_p, c_int64, cdll
 
-
     class GoString(Structure):
         _fields_ = [
             ("p", c_char_p),
             ("n", c_int64),
         ]
-    
     ```
 
 2. 加载库并调用
@@ -432,9 +429,7 @@ go build -buildmode=c-archive -o library.a main.go
     hello = __library.hello
     hello.argtypes = [GoString]
     hello.restype = None
-
     string = "Python"
-
     hello(GoString(string.encode(), len(string.encode())))
     ```
 
@@ -665,11 +660,11 @@ func helloPerson(p C.struct_Person) {
             ("name", c_char_p),
             ("age", c_int),
         ]
-
+    
     __library = cdll.LoadLibrary('library.so')
     hello_person = __library.helloPerson
     hello_person.argtypes = [Person]
-
+    
     hello_person(
         Person(name=b"xiaoming", age=12)
     )
@@ -808,16 +803,16 @@ type _Ctype_struct_Person struct {
     ```python
     # pyx 
     # 记得在 pxd 文件中定义 returnIntPointer 和 GoUintptr
-
+    
     cdef GoInt return_int_pointer(GoInt a):
         cdef GoUintptr res_addr = returnIntPointer(&a)
         cdef GoInt* res = <GoInt*> res_addr
         return res[0]
-
+    
     def go_return_int_pointer(a: int):
         res = return_int_pointer(a)
         print(res)
-
+    
     ```
 
     python ctypes 对于指针的转换也是方便:
@@ -825,11 +820,11 @@ type _Ctype_struct_Person struct {
     ```python
     # py
     __library = cdll.LoadLibrary('library.so')
-
+    
     change_int = __library.returnIntPointer
     change_int.argtypes = [POINTER(c_int64)]
     change_int.restype = c_size_t
-
+    
     i = pointer(c_int64(100)) # i 是 pointer 类型的参数
     res_addr = change_int(i) # res_addr 是 一个地址
     res = cast(res_addr, POINTER(c_int64)) # 将地址转换为一个指针对象
@@ -890,7 +885,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
         cdef struct Person:
             char* name
             long long age
-
+    
         size_t helloPersonPoint(Person* p)
     ```
 
@@ -900,11 +895,11 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
         p.name = name
         p.age = age
         return p
-
+    
     def go_person_point(name: str, age: int):
         cdef Person p = getPerson(name.encode(), age)
         cdef size_t pAddress = helloPersonPoint(&p)
-
+    
         cdef Person* p2 = <Person*> pAddress
         print(p2.name)
         print(p2.age)
@@ -912,7 +907,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
 
 2. python
-    
+   
     对于 Python 来说，有一个 POINTER 的类型可以用来接受指针对象，有 cast 方法，可以将地址转换成响应的指针对象。
 
     ```python
@@ -921,16 +916,16 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
             ("name", c_char_p),
             ("age", c_longlong),
         ]
-
+    
     hello_person_point = __library.helloPersonPoint
-
+    
     hello_person_point.argtypes = [POINTER(Person)]
     hello_person_point.restype = c_size_t
-
+    
     p_addr = hello_person_point(pointer(Person(name=b"xiaoming", age=12)))
-
+    
     person_pointer = cast(p_addr, POINTER(Person))
-
+    
     person = p_pointer.contents # contents 是指向指针的值
     print(person.name)
     print(person.age)
@@ -962,10 +957,10 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
         goArray := (*[buffer]int)(unsafe.Pointer(first)) // #2
         var goSlice []int = goArray[:length] // #3
         fmt.Println(goSlice)
-
+    
         last := length - 1
         goSlice[0], goSlice[last] = goSlice[last], goSlice[0] // #4
-
+    
         const arrayLength = 10
         ret := C.malloc(C.size_t(arrayLength) * C.size_t(unsafe.Sizeof(C.longlong(0)))) // #5
         pRet := (*[arrayLength]C.longlong)(ret) // #6
@@ -1036,18 +1031,18 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
     ```python
     import array
     from ctypes import (POINTER, cdll, c_int64)
-
+    
     __library = cdll.LoadLibrary('library.so')
-
+    
     return_int_array = __library.returnIntArray
-
+    
     length = 10
     args_type = POINTER(c_int64) * length # Python 中为了创建一个 C 的数组，需要先创建一个 POINTER 的类型，然后再 乘一个长度，即可获得 C 中的数组了
     res_type = POINTER(c_int64) # 返回值是一个指针
-
+    
     return_int_array.argtypes = [args_type, c_int64]
     return_int_array.restype = res_type
-
+    
     arr = array.array("q", range(length))
     res = return_int_array(args_type.from_buffer(arr), length) # 使用 from_buffer 速度比较快，还有一种方式是 args_type([1,2,3,4])，这种速度会比较慢，Python 的 array 是更为底层的数据结构
     # res = return_int_array(args_type(list(range(length))), length) # 慢
@@ -1195,16 +1190,16 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会
         for idx, _ := range slice {
             slice[idx] = idx
         } // # 1
-
+   
         for idx, _ := range *slicePoint {
             (*slicePoint)[idx] = idx
         } // # 2
-
+   
         res := make([]int, 10, 10) // # 3
         for idx, _ := range res {
             res[idx] = idx
         }
-
+   
         sh := (*reflect.SliceHeader)(unsafe.Pointer(&res)) // # 4
         return sh.Data // # 5
     }
@@ -1275,10 +1270,7 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会
     import array
     from typing import Type
     from ctypes import (POINTER, cdll, c_longlong, Structure, _SimpleCData, pointer)
-
     GoSliceTypes = dict()
-
-    
     def GoSlice(cType: Type[_SimpleCData]) -> Type[Structure]:
         """GoSlice 工厂函数，返回的是不同类型的 GoSlice"""
         t = GoSliceTypes.get(cType)
@@ -1296,35 +1288,34 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会
         GoSliceTypes[cType] = t
         return t
 
-
     __library = cdll.LoadLibrary('library.so')
-
+    
     GoIntSlice = GoSlice(c_longlong) # 创建 []int 类型的 Slice
-
+    
     return_int_slice = __library.returnIntSlice
     return_int_slice.argtypes = [GoIntSlice, POINTER(GoIntSlice)]
     return_int_slice.restype = POINTER(c_longlong)
-
+    
     arr1 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1))) # 创建参数，c_types 的数组能够传给一个指针变量，指向这个数组的第一个元素
     slice_1 = GoIntSlice(
         data=arr1,
         len=10,
         cap=10,
     )
-
+    
     arr2 = (c_longlong * 10).from_buffer(array.array("q", range(10, 0, -1)))
-
+    
     # pointer 类型
     slice_pointer = pointer(GoIntSlice(
         data=arr2,
         len=10,
         cap=10,
     ), )
-
+    
     res = return_int_slice(slice_1, slice_pointer)
     print(list(arr1))
     print(list(arr2)) # 打印两个array，发现都被 Go 修改了去
-
+    
     print([res[i] for i in range(10)]) # 虽然我这边返回 0 - 9，不过实际上打印出来的最后一位是 1374389923320 
     ```
 
