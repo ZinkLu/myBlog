@@ -40,7 +40,6 @@ Python，解释性语言，语法简单，更加贴近英语的书写习惯，�
 假设我们就有这么一个函数:
 
 ```golang
-
 func add(a int, b int) int {
     return a + b
 }
@@ -94,13 +93,13 @@ func add(a int, b int) int {
 
     在头文件里面有许多重要的信息，特别的一些结构体和类的定义，当然也包括了我们 export 出来的函数名称；
 
-    ```h
+    ```c
     extern GoInt add(GoInt a, GoInt b);
     ```
 
     注意这里面的数据类型是 GoInt，不过 GoInt 在上面的头文件里面也定义了，可以看到实际是 C 的 `long long` 类型（和操作系统有关）:
     
-    ```h
+    ```c
     typedef long long GoInt64; // GoInt64 对应 C 的长整型
     typedef GoInt64 GoInt; // GO 中 int 类型实际上就是 int64 (64位操作系统)
     ```
@@ -111,7 +110,7 @@ func add(a int, b int) int {
 
     我们遵循 cython 的文档，先创建一个 `external.pxd` 文件，这个文件有点像是 cython 的头文件，我们在里面定义我们即将要应用的包和需要使用到包内的函数：
 
-    ```python
+    ```cython
     cdef extern from "library.h":
         int add(int a, int b) 
     ```
@@ -120,7 +119,7 @@ func add(a int, b int) int {
 
     不过实际上我们已经比较简化了这个写法，实际上应该这么写：
 
-    ```python
+    ```cython
     cdef extern from "library.h":
         ctypedef int GoInt64
         ctypedef GoInt64 GoInt
@@ -133,7 +132,7 @@ func add(a int, b int) int {
 
     创建 `external.pyx` 的文件，在这里去定义 Python 的入口
 
-    ```python
+    ```cython
     from external cimport *
 
     def go_add(a: GoInt, b: GoInt) -> GoInt:
@@ -313,7 +312,7 @@ print(res)
 
 当然，也可以在 cython 用 `complex.h` 中的数据结构进行处理，总之对精度有要求还是要尽可能得去处理成 Decimal。
 
-```python
+```cython
 cdef extern from "complex.h":
     ctypedef long double GoComplex128
 ```
@@ -371,7 +370,7 @@ go build -buildmode=c-archive -o library.a main.go
 
 1. 先定义 pxd 文件
 
-    ```python
+    ```cython
     # external.pxd
     cdef extern from "stddef.h":
         cdef struct _GoString_:
@@ -386,7 +385,7 @@ go build -buildmode=c-archive -o library.a main.go
 
     定义 cdef 方法，将一个 `char*` 转换成 `GoString` ，而 `char*` 可以对应 Python 中的 bytes。
 
-    ```python
+    ```cython
     # external.pyx
     from external cimport hello, GoString
     
@@ -612,7 +611,7 @@ func helloPerson(p C.struct_Person) {
 
 1. cython
 
-    ```python
+    ```cython
     # pxd
     cdef extern from "library.h":
         cdef struct Person:
@@ -622,7 +621,7 @@ func helloPerson(p C.struct_Person) {
         void helloPerson(Person p)
     ```
 
-    ```python
+    ```cython
     # pyx
     import cython
     from external cimport Person, helloPerson
@@ -638,9 +637,9 @@ func helloPerson(p C.struct_Person) {
         helloPerson(p)
     ```
 
-    当然上述方法可以合并到一个 Python 的方法中
+    当然上述方法可以合并到一个 Cython 的方法中
     
-    ```python
+    ```cython
     def go_person(name: str, age: int):
         cdef Person p
         name_bytes = name.encode()
@@ -800,7 +799,7 @@ type _Ctype_struct_Person struct {
 
     > 当然，`pointer[1]` 这种操作也是可以的，他会直接取下一个指针的值，在我们当前的场景下这么操作非常危险；
 
-    ```python
+    ```cython
     # pyx 
     # 记得在 pxd 文件中定义 returnIntPointer 和 GoUintptr
     
@@ -879,7 +878,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
 1. cython
 
-    ```python
+    ```cython
     # pxd
     cdef extern from "library.h":
         cdef struct Person:
@@ -889,7 +888,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
         size_t helloPersonPoint(Person* p)
     ```
 
-    ```python
+    ```cython
     cdef (Person) getPerson(char* name, int age):
         cdef Person p
         p.name = name
@@ -997,7 +996,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
 
     同时，在 Cython 里面操作指针和索引操作一样。
 
-    ```python
+    ```cython
     # pxd
     cdef extern from "library.h":
         ctypedef int GoInt64
@@ -1006,7 +1005,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
         GoUintptr returnIntArray(GoInt* first, GoInt length)
     ```
 
-    ```python
+    ```cython
     # pyx
     from cpython cimport array
     from external cimport GoInt, GoUintptr, returnIntArray
@@ -1060,7 +1059,7 @@ func helloPersonPoint(p *C.struct_Person) C.size_t {
     
     如果再 getPerson 中返回 Person 的指针，即 `Person*` ，在 go_person 中再调用 helloPerson 可能有问题，如下所示：
 
-    ```python
+    ```cython
     cdef (Person*) getPerson(char* name, int age):
         cdef Person p
         p.name = name
@@ -1219,7 +1218,7 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会
 
     Cython 的操作几乎和 array 一样，只不过是要多构建一个 GoSlice 的结构体罢了
 
-    ```python
+    ```cython
     # pxd
     cdef extern from "library.h":
         ctypedef int GoInt64
@@ -1233,7 +1232,7 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice; // .h 文件不会
         GoUintptr returnIntSlice(GoSlice slice, GoSlice* slicePoint)
     ```
 
-    ```python
+    ```cython
     # pyx
     def go_return_int_slice(youSlice: List[int]):
         cdef GoInt[:] carray = array.array("q", youSlice)
