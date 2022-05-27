@@ -28,6 +28,7 @@ params:
   defaultTheme: light # dark, light
   disableThemeToggle: false
   ShowReadingTime: false
+  ShowWordCount: true
   ShowShareButtons: false
   ShowPostNavLinks: true
   ShowBreadCrumbs: true
