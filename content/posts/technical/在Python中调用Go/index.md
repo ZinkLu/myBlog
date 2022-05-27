@@ -1390,17 +1390,181 @@ TODO，虽然是 TODO 但是我感觉最好还是不要在其他地方用 Go 的
 
 TODO，虽然是 TODO 但是我感觉最好还是不要在其他地方用 Go 的 `interface{}` ，以后可能也不会补充这块的内容。
 
-# 多返回值
+# 10. 多返回值
 
-TODO
+```go
+//export multiReturn
+func multiReturn() (int, int) {
+	return 1, 2
+}
+```
 
-# ☢️☢️内存安全☢️☢️
+C 原生不支持多返回值，因此再看 `library.h` 文件，会发现此时多了一行定义
+
+```c
+/* Return type for multiReturn */
+struct multiReturn_return {
+	GoInt r0;
+	GoInt r1;
+};
+extern struct multiReturn_return multiReturn();
+```
+
+那就懂了啊，不就是[结构体作为返回值](#52-结构体作为返回值)吗。
+
+我们还是拿 ctypes 举例吧，Cython 太啰嗦了，其实就是在做之前的事情。
+
+```python
+__library = cdll.LoadLibrary('library.so')
+
+GoInt = c_longlong
+class multiReturn_return(Structure):
+    _fields_ = [
+        ("r0", GoInt),
+        ("r1", GoInt),
+    ]
+    
+multiReturn = __library.multiReturn
+multiReturn.restype = multiReturn_return
+
+res = multiReturn()
+print(res.r0)
+print(res.r1)
+```
+
+# 11. 内存安全
 
 这点实在太重要了，如果你还没看过这一章节，那我建议你还是不要在长期运行的服务中去调用 Go 的函数了（或者 C 的函数），一定会造成内存泄露的。
 
-TODO
+在 [指针](#63-问题) 这一小节，遇到了一些奇怪的问题，这些我猜测是由 Go 的 GC 造成的。
 
-# 总结
+而在 [数组](#62-数组指针) 这一小节，我们甚至使用了 `C.malloc()` 来申请一片动态内存（或者说是 heap memory），这就让我要考虑内存泄露的问题，毕竟 Python 和 Go 都能够自动去 GC，而如果是在 `C.malloc()` 中申请的动态内存，又由谁来回收呢？
+
+我写了和小程序来验证这个猜想，这里借助了 Python 的内存分析模块 `memory_profiler`。
+
+简单来说，就是在循环中去调用 Go 函数，这个函数返回一个 `C.char`，下面是循环调用后的内存增长情况：
+
+```txt
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    54     47.9 MiB     47.9 MiB           1   @profile
+    55                                         def main():
+    56     67.5 MiB      0.1 MiB      300001       for _ in range(300_000):
+    57     67.5 MiB     19.6 MiB      300000           a = hello(c_char_p(str(uuid.uuid4()).encode()))  # 循环去调用 go 程序 hello
+    58                                         
+    59     67.5 MiB      0.0 MiB           1       import gc
+    60     67.5 MiB      0.0 MiB           1       gc.collect()  # GC 无法回收内存
+```
+
+所以要手动释放这部分内存，有两种方式。
+
+## 11.1 在 Go 中释放内存
+
+在 Go 中释放内存和申请内存一样，只需要调用 `C.free` 即可
+
+```go
+package main
+
+/* 
+// 记得要 include stdlib
+#include <stdlib.h>
+*/
+import "C"
+
+//export hello
+func hello(a *C.char) *C.char {
+    // 不能 free a 这个地址，因为这个 a 是由 Python 创建的，在栈内存上的变量，无法被回收
+	var str string = C.GoString(a)
+	return C.CString(fmt.Sprintf("hello %s\n", str))
+}
+
+//export freeChar
+func freeChar(addr *C.char) {
+	C.free(unsafe.Pointer(addr))
+}
+```
+
+重新编写 Python 程序
+
+```python
+from memory_profiler import profile
+
+import uuid
+from ctypes import c_char_p, cdll, POINTER, c_char
+
+__library = cdll.LoadLibrary('library.so')
+hello = __library.hello
+free = __library.freeChar
+
+hello.restype = POINTER(c_char)
+
+
+@profile
+def main():
+    for _ in range(300_000):
+        a = hello(c_char_p(str(uuid.uuid4()).encode()))  # 循环去调用 go 程序 hello
+        free(a)
+
+    import gc
+    gc.collect()  # GC 无法回收内存
+
+
+if __name__ == "__main__":
+    main()
+```
+
+结果
+
+```txt
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    13     47.5 MiB     47.5 MiB           1   @profile
+    14                                         def main():
+    15     54.3 MiB      0.2 MiB      300001       for _ in range(300_000):
+    16     54.3 MiB      6.2 MiB      300000           a = hello(c_char_p(str(uuid.uuid4()).encode()))  # 循环去调用 go 程序 hello
+    17     54.3 MiB      0.3 MiB      300000           free(a)
+    18                                         
+    19     54.3 MiB      0.0 MiB           1       import gc
+    20     54.3 MiB      0.0 MiB           1       gc.collect()  # GC 无法回收内存
+```
+
+可以看到内存确实减少，不过为什么还是多了 6.2 MiB 的内存呢？这个我也确实没琢磨明白。
+
+由于 Python 是调用方，所以在参数方面，相对安全，因为变量指针都是由 Python 保存的，参与 Python 的 GC。
+
+**在 Go 函数中的变量，无论是存在堆内存还是栈内存（反正都是由 Go 自己控制），都会参与到 Go 的 GC 中。但一旦涉及到返回值，由于 Cgo 的处理，会在堆内存上创建一些变量，且 Go 不会管理这些指针，因此必须回收。**
+
+> 其实 [Go 官方博客](https://go.dev/blog/cgo) 已经说了，C.CString 是必须要 free 的。
+
+## 11.2 在 Cython 中释放内存
+
+Cython 中的 API 也能回收内存，我们拿数组举例：
+
+```go
+//export returnIntArray
+func returnIntArray(first *int, length int) uintptr {
+    // 不重复写了，可以去上面在看下
+}
+```
+
+cython 中这么写。
+
+```cython
+from libc.stdlib cimport malloc, free
+
+def go_return_int_array(youArray: List[int]):
+    cdef GoInt[:] carray = array.array("q", youArray)
+    cdef GoInt *carray_p = &carray[0]
+    cdef GoUintptr res_addr = returnIntArray(carray_p, len(youArray))
+    cdef GoInt *res = <GoInt*> res_addr # 返回的结果，先转化成一个指针
+    print(carray.base) # 这里是 memoryview 对象，我们可以直接获取他内部的对象
+    print([res[i] for i in range(10)]) # 打印返回的结果，我们操作指针移动 10 次，去取值
+    free(res)
+```
+
+其实 Cython 在内存回收上也做了一些花样，可以查看 [Cython文档](https://cython.readthedocs.io/en/latest/src/tutorial/memory_allocation.html)
+
+# 12. 总结
 
 经过这一波折腾，我算是对 Python 调用 C，Go 调用 C 有了一波船新的认识。
 
@@ -1416,7 +1580,7 @@ Cgo 之于 Go，就如 Cython 之于 Python。
 
 最后，希望能这篇文章能帮助到 *不小心* 走到这条路上的人。
 
-# 参考
+# 13. 参考
 
 - [https://github.com/fluhus/snopher](https://fluhus.github.io/snopher/)
 
@@ -1424,6 +1588,6 @@ Cgo 之于 Go，就如 Cython 之于 Python。
 
 - ...(此处省略一万个 stackoverflow )
 
-# 转载说明
+# 14. 转载说明
 
 欢迎转载，转载请备注作者的 GitHub 主页：https://github.com/ZinkLu
