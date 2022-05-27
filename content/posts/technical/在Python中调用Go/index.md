@@ -751,7 +751,7 @@ type _Ctype_struct_Person struct {
 | c_size_t  | int    | size_t                | GoUintptr | uintptr |
 | c_ssize_t | int    | ssize_t or Py_ssize_t | GoUintptr | uintptr |
 
-## 6.1 基本类型指针
+## 6.0 基本类型指针
 
 1. 传入一个指针
 
