@@ -9,7 +9,7 @@
 {{- end }}
 
 {{- if (.Param "ShowWordCount") -}}
-{{- $scratch.Add "meta" (slice (i18n "word_count" (countwords .Content) | default (printf "%d words" (countwords .Content)))) }}
+{{- $scratch.Add "meta" (slice (i18n "word_count" (countrunes .Content) | default (printf "%d words" (countrunes .Content)))) }}
 {{- end }}
 
 {{- with (partial "author.html" .) }}
