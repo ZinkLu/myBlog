@@ -65,7 +65,7 @@ handlers:
 
 - `debug`: 如果设置为 `true`，将记录更多的信息。
 
-- `Handlers`: 这部分应该包括不同的 handlers 的配置，详见[项目结构](#41-代码结构)
+- `Handlers`: 这部分应该包括不同的 handlers 的配置，详见[项目结构](#51-代码结构)
 
 我也写了一些 handlers，可以直接使用
 
@@ -111,11 +111,11 @@ handlers:
 
 4. 选择一个服务器，见下图。
 
-    ![s1](docs/static/step1.jpg)
+    ![s1](./images/step1.jpg)
 
 5. 然后你的控制台应该会显示一个包含 `serverId` 的XHR请求。
 
-    ![s2](docs/static/step2.jpg)
+    ![s2](./images/step2.jpg)
 
 ### 4.1.3 用法
 
