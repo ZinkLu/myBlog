@@ -224,7 +224,7 @@ type Config struct {
 }
 ```
 
-本项目支持 json 和 yaml 两种配置文件格式，提供了新的 tag 来 unarshal 对象，因此，我们可以来定义下 Init 方法
+本项目支持 json 和 yaml 两种配置文件格式，提供了新的 tag 来 unmarshal 对象，因此，我们可以来定义下 Init 方法
 
 ```go
 func (w *WeatherHandler) Init(conf *config.ConfigUnmarshaler) {
