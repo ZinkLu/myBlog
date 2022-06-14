@@ -131,7 +131,7 @@ handlers:
 
 - [x] 将serverId改为serverIds，这样我们就可以控制多个服务器。
 
-- [] 如果serverIds是空的，那机器人会自动获取。
+- [ ] 如果serverIds是空的，那机器人会自动获取。
 
 ## 4.2 一言 Handler
 
