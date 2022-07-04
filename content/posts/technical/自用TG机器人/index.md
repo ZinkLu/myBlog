@@ -143,6 +143,52 @@ handlers:
 
 特别感谢 [hitokoto.cn](https://hitokoto.cn/) （本网站的404也是由一言驱动的）
 
+## 4.5 Tgo Handler
+
+Tgo Handler 可以通过 gRPC 和 [Tgo API](https://p4gefau1t.github.io/trojan-go/advance/api/) 通讯，从而拿到用户信息。
+
+> 当前只支持查询，不支持新增修改删除。
+
+### 4.5.1 配置
+
+Tgo Handler 也是一个 `message_handler`:
+
+```yaml
+handlers:
+    message_handler:
+        Tgo:
+            api_addr: "127.0.0.1"
+            api_port: 1444
+```
+
+- `handers.message_handler.Tgo`:
+    - `api_addr`: grpc API's host
+    - `api_port`: grpc API's port
+
+> 当前只支持不带证书的 gRPC 链接
+
+### 4.5.2 用法
+
+给机器人发送 `我的流量`，这时机器人会要求你输入密码。
+
+选中机器人的这条信息，然后点击回复信息，再输入密码后再发送。
+
+如果密码正确，就可以显示用户用量：
+
+```text
+USAGE           ⏳184.61MB(0.18Gb).
+SPEED           ⬆️0.00kb/s, ⬇️0.00kb/s
+SPEED LIMIT     ⬆️0.00kb/s, ⬇️0.00kb/s
+ONLINE DEVICE   💻 0(current) 0(total)
+```
+
+查询成功后密码会被缓存，因此下次直接发送 `我的流量` 即可重新查询。
+
+### 4.5.3 TODO
+
+- [ ] 支持安全的 gRPC 链接
+- [ ] 支持管理员密码，能对用户进行进一步管理
+
 # 5. 添加自定义处理程序
 
 在编写代码之初，我就不希望这个机器人只能处理某一种问题，比如只能控制服务器。
