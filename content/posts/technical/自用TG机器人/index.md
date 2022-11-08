@@ -159,11 +159,23 @@ handlers:
         Tgo:
             api_addr: "127.0.0.1"
             api_port: 1444
+            use_cert: true 
+            sni: example.com 
+            ca_cert_path: []
+            cert_path: client.crt 
+            cert_key: client.key
+            verify: true
 ```
 
 - `handers.message_handler.Tgo`:
     - `api_addr`: grpc API's host
     - `api_port`: grpc API's port
+    - `use_cert`: 是否启用tls链接，如果启用则 `cert_pat` 和 `cert_key` 都必须填写
+    - `sni`: 如果你使用 IP 去连接服务，则这个值会用来验证服务端提供的证书信息中的域名信息
+    - `ca_cert_path`: 如果你使用的自签名的证书，则这个指定你做自签名时的 CA 证书
+    - `cert_path`: 客户端的证书路径，你还需要再服务端将这本证书添加到信任列表中，详见[这里](https://p4gefau1t.github.io/trojan-go/developer/api/)
+    - `cert_key`: 客户端证书的key
+    - `verify`: 是否开启服务端证书的校验，推荐一直设置为 true
 
 > 当前只支持不带证书的 gRPC 链接
 
@@ -186,7 +198,7 @@ ONLINE DEVICE   💻 0(current) 0(total)
 
 ### 4.5.3 TODO
 
-- [ ] 支持安全的 gRPC 链接
+- [x] 支持安全的 gRPC 链接
 - [ ] 支持管理员密码，能对用户进行进一步管理
 
 # 5. 添加自定义处理程序
