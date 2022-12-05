@@ -7,13 +7,13 @@ summary: NUT的基本使用、配置与我当前的使用场景
 isMath: false
 ---
 
-# NUT 是什么？
+# 1. NUT 是什么？
 
 NUT 全称是 Network UPS Tools，即 **网络UPS工具**，它的作用是提供服务来让网络中的计算机了解当前 UPS 的状态，并在 UPS 电池耗尽之前执行关机以确保数据的安全。
 
 值得注意的是，不是所有的UPS都支持这个功能。在购入 UPS 前需要查看它支不支持与计算机通讯，且有完备的驱动。
 
-# NUT 中重要的概念（软件的分层）
+# 2. NUT 中重要的概念（软件的分层）
 
 - **drivers** - 和硬件交互: `upsdrvctl + ups.conf`
 - **server** - 提供硬件状态的接口: `upsd + upsd.conf/upsd.users`
@@ -25,7 +25,7 @@ NUT 全称是 Network UPS Tools，即 **网络UPS工具**，它的作用是提�
 1. upslog: 查看监听日志
 2. upscmd: 运行UPS内置命令（需要UPS支持，使用 `upscmd -l` 来查看; 需要upsd.users 授权用户才能执行）
 
-# NUT的运行模式
+# 3. NUT的运行模式
 
 [详见文档](https://networkupstools.org/docs/user-manual.chunked/ar01s03.html)
 
@@ -34,15 +34,15 @@ NUT 全称是 Network UPS Tools，即 **网络UPS工具**，它的作用是提�
 ![advanced](advanced.png)
 
 
-# NUT 配置步骤
+# 4. NUT 配置步骤
 
-## 0. 安装 NUT 工具
+## 4.0. 安装 NUT 工具
 
 ```bash
 sudo apt install nut
 ```
 
-## 1. 配置 NUTdriver
+## 4.1. 配置 NUTdriver
 
 1. 扫描
 
@@ -78,7 +78,7 @@ sudo apt install nut
     sudo upsdrvctl start APC # 这里是配置文件中的UPS名称
     ```
 
-## 2. 配置 upsd 并启动
+## 4.2. 配置 upsd 并启动
 
 1. 修改配置
 
@@ -97,7 +97,7 @@ sudo apt install nut
     sudo upsd
     ```
 
-## 3. 查看UPS状态
+## 4.3. 查看UPS状态
 
 1. 查询所有状态
 
@@ -118,7 +118,7 @@ sudo apt install nut
 
    LB: low battery （电量低）
 
-## 4. 配置NUT自启动
+## 4.4. 配置NUT自启动
 
    修改 `/etc/nut/nut.conf`
 
@@ -128,7 +128,7 @@ sudo apt install nut
 
    > 特别老的版本好像是没有此配置的，需要手动配置.serivce文件
 
-## 5. 设置自动关机 和 低电量事件
+## 4.5. 设置自动关机 和 低电量事件
 
 ### 5.1 NUT Flow（当停电以后发生了什么？）
 
@@ -230,72 +230,75 @@ sudo apt install nut
         esac
         ```
 
-4. 我的需求：
-    1. 当 UPS 启动电池供电时，记录日志并且发送 pushdeer 的通知
-    2. 当 UPS 恢复供电时，发送 pushdeer 的通知
-    3. 当 UPS 的电池电量少于 50% 时，发送 pushdeer 的通知 (TODO)
-    4. 当 `NOTIFY_SHUTDOWN` 事件被触发，准备关机时，发送 pushdeer 的通知。（master和slave都要配置）(TODO)
+### 5.4 我的配置
 
-    为了满足上述需求，我们可以对下述配置文件行进修改
+先来看下我的需求：
 
-    `upsmon.conf`
+1. 当 UPS 启动电池供电时，记录日志并且发送 pushdeer 的通知
+2. 当 UPS 恢复供电时，发送 pushdeer 的通知
+3. 当 UPS 的电池电量少于 50% 时，发送 pushdeer 的通知 (TODO)
+4. 当 `NOTIFY_SHUTDOWN` 事件被触发，准备关机时，发送 pushdeer 的通知。（master和slave都要配置）(TODO)
 
-    ```bash
-    NOTIFYCMD /usr/sbin/upssched
-    
-    NOTIFYFLAG ONLINE SYSLOG+EXEC
-    NOTIFYFLAG ONBATT SYSLOG+WALL+EXEC
-    NOTIFYFLAG LOWBATT SYSLOG+WALL+EXEC
-    ```
-    
-    `upssched.conf`
+为了满足上述需求，我们可以对下述配置文件行进修改
 
-    ```bash
-    CMDSCRIPT /usr/local/bin/upssched-script.sh
-    
-    PIPEFN    /run/nut/upssched/upssched.pipe
-    LOCKFN    /run/nut/upssched/upssched.lock
+`upsmon.conf`
 
-    AT ONBATT * EXECUTE      battery_on         # 发送断电的消息
-    AT ONLINE * EXECUTE      power_online       # 发送来电的消息
-    AT ONBATT * START-TIMER  watch_battery 60   # 每 60 秒就监控电池状态
-    AT ONLINE * CANCEL-TIMER watch_battery      # 取消 监控电池状态
-    ```
+```bash
+NOTIFYCMD /usr/sbin/upssched
 
-    `/usr/local/bin/upssched-script.sh`
+NOTIFYFLAG ONLINE SYSLOG+EXEC
+NOTIFYFLAG ONBATT SYSLOG+WALL+EXEC
+NOTIFYFLAG LOWBATT SYSLOG+WALL+EXEC
+```
 
-    ```bash
-    #! /bin/bash
-    UPSNAME=${UPSNAME}
-    NOTIFYTYPE=${NOTIFYTYPE}
-    PUSH_DEER_HOST=${PUSH_DEER_HOST:-"https://api2.pushdeer.com"}
-    PUSH_DEER_KEY=${PUSH_DEER_KEY:-"PDU524TTKZWck93IFhVd8jMAaEqvZ8VBqV3HVCa"}
+`upssched.conf`
 
-    function send_push_deer(){
-        message=$1
-        curl -X GET -G --data-urlencode "text=${message}" $PUSH_DEER_HOST"/message/push?pushkey=${PUSH_DEER_KEY}"
-    }
+```bash
+CMDSCRIPT /usr/local/bin/upssched-script.sh
 
-    case $1 in
-        battery_on)
-            send_push_deer "UPS 电池已启用，请密切关注电池状态"
-            ;;
-        power_online)
-            send_push_deer  "UPS 恢复供电，目前电量: `upsc apc@192.168.31.50 battery.charge`"
-            ;;
-        *)
-            logger -t upssched-cmd "Unrecognized command: $1"
-            ;;
-    esac
-    ```
+PIPEFN    /run/nut/upssched/upssched.pipe
+LOCKFN    /run/nut/upssched/upssched.lock
 
-    > 经测试配置文件生效，能正常触发pushdeer
-    > 
-    > 需要注意
-    >
-    > 1. PIPEFN LOCKFN 这俩文件必须要设置运行者的权限，一般是 nut 用户，可以在 `upsmon.conf` 中配置
-    >
-    > 2. 需要 CMDSCRIPT 有可执行的权限，并且需要指定 shebang `#!` 
+AT ONBATT * EXECUTE      battery_on         # 发送断电的消息
+AT ONLINE * EXECUTE      power_online       # 发送来电的消息
+AT ONBATT * START-TIMER  watch_battery 60   # 每 60 秒就监控电池状态
+AT ONLINE * CANCEL-TIMER watch_battery      # 取消 监控电池状态
+```
+
+`/usr/local/bin/upssched-script.sh`
+
+```bash
+#! /bin/bash
+UPSNAME=${UPSNAME}
+NOTIFYTYPE=${NOTIFYTYPE}
+PUSH_DEER_HOST=${PUSH_DEER_HOST:-"https://api2.pushdeer.com"}
+PUSH_DEER_KEY=${PUSH_DEER_KEY:-"PDU524TTKZWck93IFhVd8jMAaEqvZ8VBqV3HVCa"}
+
+function send_push_deer(){
+    message=$1
+    curl -X GET -G --data-urlencode "text=${message}" $PUSH_DEER_HOST"/message/push?pushkey=${PUSH_DEER_KEY}"
+}
+
+case $1 in
+    battery_on)
+        send_push_deer "UPS 电池已启用，请密切关注电池状态"
+        ;;
+    power_online)
+        send_push_deer  "UPS 恢复供电，目前电量: `upsc apc@192.168.31.50 battery.charge`"
+        ;;
+    *)
+        logger -t upssched-cmd "Unrecognized command: $1"
+        ;;
+esac
+```
+
+> 经测试配置文件生效，能正常触发pushdeer
+> 
+> 需要注意
+>
+> 1. PIPEFN LOCKFN 这俩文件必须要设置运行者的权限，一般是 nut 用户，可以在 `upsmon.conf` 中配置
+>
+> 2. 需要 CMDSCRIPT 有可执行的权限，并且需要指定 shebang `#!` 
 
 ---
 
