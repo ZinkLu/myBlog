@@ -7,6 +7,12 @@ summary: NUT的基本使用、配置与我当前的使用场景
 isMath: false
 ---
 
+# NUT 是什么？
+
+NUT 全称是 Network UPS Tools，即 **网络UPS工具**，它的作用是提供服务来让网络中的计算机了解当前 UPS 的状态，并在 UPS 电池耗尽之前执行关机以确保数据的安全。
+
+值得注意的是，不是所有的UPS都支持这个功能。在购入 UPS 前需要查看它支不支持与计算机通讯，且有完备的驱动。
+
 # NUT 中重要的概念（软件的分层）
 
 - **drivers** - 和硬件交互: `upsdrvctl + ups.conf`
@@ -29,6 +35,12 @@ isMath: false
 
 
 # NUT 配置步骤
+
+## 0. 安装 NUT 工具
+
+```bash
+sudo apt install nut
+```
 
 ## 1. 配置 NUTdriver
 
@@ -63,7 +75,7 @@ isMath: false
     ```bash
     sudo systemctl start nut-driver
     # 或者
-    upsdrvctl start APC # 这里是配置文件中的UPS名称
+    sudo upsdrvctl start APC # 这里是配置文件中的UPS名称
     ```
 
 ## 2. 配置 upsd 并启动
@@ -82,7 +94,7 @@ isMath: false
 3. 启动uspd
 
     ```bash
-    upsd
+    sudo upsd
     ```
 
 ## 3. 查看UPS状态
