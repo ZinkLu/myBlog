@@ -1,8 +1,8 @@
 ---
-title: "NUT的基本使用"
+title: "使用NUT控制UPS电源"
 date: "2022-12-05T00:50:11+08:00"
 draft: false
-description: NUT = Network UPS Tools
+description: NUT = Network UPS Tools; UPS = Uninterruptible Power Supply
 summary: NUT的基本使用、配置与我当前的使用场景
 isMath: false
 ---
