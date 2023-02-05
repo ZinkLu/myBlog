@@ -1,7 +1,7 @@
 ---
 title: "使用smart + smartd 来监控磁盘状态"
 date: "2022-12-05T22:49:51+08:00"
-draft: false
+draft: true
 description: 
 summary: smart 的理解 和 smartd 的基本使用
 isMath: false
