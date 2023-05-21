@@ -2,7 +2,7 @@
 title: "【HomeServer】- 平台、网络搭建"
 date: "2022-12-31T12:41:00+08:00"
 draft: false
-summary: 【别硬折腾】系列之 【HomeServer. Part2.】
+summary: 【别硬折腾】系列之 【HomeServer. Part2.】安装 PVE 虚拟机系统，安装 ikuai 虚拟机并直通网卡，安装 OpenWrt 虚拟机来管理网络。
 isMath: false
 ---
 
