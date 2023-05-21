@@ -1,7 +1,7 @@
 ---
 title: "【HomeServer】- 存储平台搭建"
 date: "2023-05-21T16:08:00+08:00"
-draft: true
+draft: false
 summary: 【别硬折腾】系列之 【HomeServer. Part2.】后续
 isMath: false
 ---
