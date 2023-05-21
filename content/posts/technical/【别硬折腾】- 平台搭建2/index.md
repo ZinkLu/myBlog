@@ -2,7 +2,7 @@
 title: "【HomeServer】- 存储平台搭建"
 date: "2023-05-21T16:08:00+08:00"
 draft: false
-summary: 【别硬折腾】系列之 【HomeServer. Part2.】后续
+summary: 【别硬折腾】系列之 【HomeServer. Part2.】后续，使用 mdadm 搭建软 raid 并使用 openmediavault 进行硬盘的管理
 isMath: false
 ---
 
