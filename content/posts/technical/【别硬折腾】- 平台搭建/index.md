@@ -233,9 +233,11 @@ apt install pve-kernel-6.1
 
 将 CPU 核心数量调到 2，同时，为了达到最佳的性能，我们将CPU的类别调到 host（推荐所有的CPU类型都是host，除非你考虑后期迁移虚拟机）。
 
-{{< img src=image-20230218143026139.png size=100% lines=设置CPU >}}
+{{< img src=image-20230218142735788.png size=100% lines=设置CPU >}}
 
 内存设置为 2048 MiB 这是 64 位 ikuai 所需要的最小内存数量。
+
+{{< img src=image-20230218143026139.png size=100% lines=设置内存 >}}
 
 ### 5.2.3 网络和网卡配置
 
@@ -336,6 +338,131 @@ apt install pve-kernel-6.1
 
 > 我之前也碰到过无法上网的情况，在宿主机中根本ping不通虚拟机，这时候不妨重启一下软路由，可能 Linux 桥接的问题。
 
-# 未完待续
-
 ## 5.3 安装 OpenWRT
+
+在我的网络体系中，ikuai 是用来拨号链接互联网的，OpenWRT 则提供了网络插件，如 frp、transmission等。
+
+### 5.3.1 下载 OpenWRT 镜像并上传
+
+到官网的[下载页面](https://downloads.openwrt.org/releases)找到所需的版本，对我来说，我需要的是最新的 x86/64 版本的安装文件，所以我应该这么选:
+
+```text
+https://downloads.openwrt.org/releases/{latest_version}/targets/x86/64/
+```
+
+选择 squashfs + combined 不带 efi 的版本进行下载：`generic-squashfs-combined.img.gz`
+
+解压，获取 img 文件
+
+```bash
+gzip -d generic-squashfs-combined.img.gz
+```
+
+### 5.3.2 创建虚拟机
+
+在创建虚拟机时，需要记住 VM ID，后面需要用到，下一步
+
+{{< img src=1684643255551.jpg size=100% lines=常规 >}}
+
+在操作系统选项卡中，先选择不使用任何介质，kernel 选择 5.x 或者 6.x，下一步
+
+{{< img src=1684643482462.jpg size=100% lines=操作系统 >}}
+
+系统选项默认，下一步
+
+在磁盘这里，我们删除默认分配的磁盘，下一步
+
+{{< img src=1684644905100.jpg size=100% lines=设置硬盘 >}}
+
+CPU 仍然 HOST 模式，核心的话可以给 1个，下一步
+
+{{< img src=image-20230218142735788.png size=100% lines=设置CPU >}}
+
+内存的话 1024MiB 绰绰有余，下一步
+
+网络默认走桥接，看下配置是否和下图一致，下一步，完成创建。
+
+{{< img src=1684643938550.jpg size=100% lines=设置网络 >}}
+
+### 5.3.3 导入镜像
+
+我们需要先进入 web shell
+
+{{< img src=proxmox-webshell.jpg size=100% lines=进入shell >}}
+
+然后输入命令来导入刚才的镜像文件
+
+```bash
+qm importdisk ${VM_ID} /var/lib/vz/template/iso/${OPENWRT_IMG} local-lvm
+```
+
+其中，`${VM_ID}` 代表刚才创建的虚拟机的 ID，`${OPENWRT_IMG}` 表示上传的镜像的名称。
+
+{{< img src=1684645070862.jpg size=100% lines=导入成功 >}}
+
+导入成功后，应该就可以在虚拟的管理页面看到这块磁盘了
+
+{{< img src=1684645152989.jpg size=100% lines=未使用的磁盘 >}}
+
+我们需要将这块硬盘启用。双击这块硬盘，将总线/设备改为 SATA 后添加
+
+{{< img src=1684645232607.jpg size=100% lines=添加磁盘 >}}
+
+随后，打开虚拟机选线中的引导顺序一栏，将这块硬盘的引导顺序改成第一。
+
+{{< img src=1684645330553.jpg size=100% lines=双击引导顺序选项卡 >}}
+
+{{< img src=1684645403179.jpg size=100% lines=启用磁盘作为引导并修改顺序 >}}
+
+完成，开机！
+
+### 5.3.4 设置 OpenWRT
+
+进入控制台后，使用命令行编辑 OpenWRT 的配置
+
+```bash
+vi /etc/config/network
+```
+
+配置其 ip 地址，网关和 DNS 服务器
+
+```conf
+config interface 'loopback'
+	option device 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config globals 'globals'
+	option ula_prefix 'fd93:1518:d4a5::/48'
+
+config device
+	option name 'br-lan'
+	option type 'bridge'
+	list ports 'eth0'
+
+config interface 'lan'
+	option device 'br-lan'
+	option proto 'static'
+	option ipaddr '192.168.31.189' # 给定固定的IP地址，要属于 192.168.31.x的网段
+	option gateway '192.168.31.1' # 默认网关为 ikuai
+	option netmask '255.255.255.0'
+	option ip6assign '60'
+	list dns 192.168.31.1 # DNS 可以和默认网关一致
+```
+
+配置完成后，重启 OpenWRT 的网络
+
+```bash
+/etc/init.d/network restart
+```
+
+重启完毕后，如果能 ping 通 baidu.com 则说明没问题，此时打开浏览器，输入 `192.168.31.189` 便可以打开 OpenWRT 的 web 界面。
+
+最后，别忘记修改 OpenWRT 的密码。
+
+大功告成。
+
+# 6. 未完待续
+
+本篇分享到这里先告一段落，没想到光平台和网络就已经这么长了，后面我会将存储（组件硬盘阵列）单独拿出来进行分享。
