@@ -4,7 +4,7 @@ date: "2023-11-29T11:26:20+08:00"
 draft: False
 description: 想要更好的喝咖啡，不如加入咖啡侠群 
 summary: 赶紧加入！
-hidden: true
+hideMeta: true
 ---
 
 扫码加入咖啡侠群:
