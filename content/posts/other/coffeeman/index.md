@@ -9,6 +9,6 @@ hideMeta: true
 
 扫码加入咖啡侠群:
 
-![微信群](weixin.JPG)
+![微信群](weixin.PNG)
 
 ps: [咖啡机使用指南](https://wiki.datagrand.com/pages/viewpage.action?pageId=118522771)
