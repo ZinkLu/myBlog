@@ -6,7 +6,6 @@ description:
 summary: 理解 Nested Set Model(嵌套集合模型)
 isMath: false
 ---
-# 在数据库中处理树形数据结构
 
 自关联表，通常都有一个 `parent_id` 字段，来形成层级结构，这里的层级结构我们先认为只能有**零个或一个父节点**，且**无闭环**。
 
