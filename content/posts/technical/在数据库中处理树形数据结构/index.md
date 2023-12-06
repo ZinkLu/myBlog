@@ -3,7 +3,7 @@ title: "在数据库中处理树形数据结构"
 date: "2023-12-05T20:57:51+08:00"
 draft: false
 description: 
-summary: 理解 Nested Set Model(嵌套集合模型)
+summary: 理解 Nested Set Model(嵌套集合模型) 和 modified preorder tree traversal algorithm(MPTT-预排序遍历树算法)
 isMath: false
 ---
 
