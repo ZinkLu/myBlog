@@ -507,7 +507,12 @@ with engine.begin() as conn:
     conn.execute(
         group.update()
         .where(group.c.rgt > hr_rgt)
-        .values(rgt=group.c.rgt - width, lft=group.c.lft - width)
+        .values(rgt=group.c.rgt - width)
+    )
+    conn.execute(
+        group.update()
+        .where(group.c.lft > hr_rgt)
+        .values(lft=group.c.lft - width)
     )
 
 distribute_lock.unlock()
