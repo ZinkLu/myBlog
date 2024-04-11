@@ -82,6 +82,8 @@ params:
       description: 炉子的GitHub
     - name: zhihu
       url: "https://www.zhihu.com/people/ming-zi-shi-xiao-ming"
+    - name: email
+      url: mailto:zinkworld@live.cn
 
   # analytics:
   #   google:
@@ -129,6 +131,11 @@ menu:
       name: 其他
       url: /posts/other/
       weight: 30
+
+    - identifier: 简历
+      name: 简历
+      url: /posts/resume
+      weight: 9
 
 # Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
 
