@@ -1,7 +1,7 @@
 ---
 title: "使用 kerberos 实现单点登录"
 date: "2024-04-19T11:30:00+08:00"
-draft: True
+draft: false
 description: 
 summary: 理解Kerberos如何在浏览器中进行认证
 isMath: false
